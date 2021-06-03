@@ -1,11 +1,12 @@
 # dump_ch2
-TVTest のチャンネル設定ファイルを CLI で生成するスクリプト (要 Mirakurun / mirakc 環境)
+BonDriver_EPGStation 用の TVTest のチャンネル設定ファイルを CLI で生成するスクリプト (要 Mirakurun or mirakc, EPGStation 環境)
 
 ## Requirements
 
 - Mirakurun or mirakc
+- EPGStation
 - Python 3.6 or above
-- TVTest w/ BonDriver_mirakc or BonDriver_EPGStation
+- TVTest w/ BonDriver_EPGStation
 
 ## Usage
 
