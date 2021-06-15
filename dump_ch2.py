@@ -1,6 +1,7 @@
 import argparse
 import itertools
 import json
+import time
 import urllib.request
 
 
@@ -26,6 +27,7 @@ if __name__ == "__main__":
     parser.add_argument("-ep", "--epgstation-port", help="specify EPGStation port.", type=int, default=8888)
     parser.add_argument("-o", "--output", help="specify output file path.", default="BonDriver_EPGStation.ch2")
     parser.add_argument("-n", "--normalize", help="normalize service name? (convert full-width chars to half-width)", action="store_true")
+    parser.add_argument("-s", "--strip", help="exclude unnecessary services?", action="store_true")
     args = parser.parse_args()
 
     mirakurun_services_url = f"http://{args.mirakurun_address.strip()}:{args.mirakurun_port}/api/services"
@@ -51,11 +53,20 @@ if __name__ == "__main__":
         output.append(f";#SPACE({i},{channelType})")
 
         for j, channel in enumerate(channels):
+            enabled = True
+            if args.strip:
+                epgstation_schedules_url = f"http://{args.epgstation_address.strip()}:{args.epgstation_port}/api/schedules/{channel['id']}?startAt={int(time.time() * 1000)}&days=7&isHalfWidth=true"
+                print(f"GET {epgstation_schedules_url}")
+                epgstation_schedules_response = call_json_api(epgstation_schedules_url)
+
+                if all([len(x["programs"]) == 0 for x in epgstation_schedules_response]):
+                    enabled = False
+
             # TSID は EPGStation API から取得できないので Mirakurun のデータを使う
             transport_stream_id = mirakurun_transport_stream_ids.get(channel["id"]) or 0
 
-            output.append(f"{channel['halfWidthName'] if args.normalize else channel['name']},{i},{j},{channel['remoteControlKeyId'] if channel['remoteControlKeyId'] > 0 else channel['serviceId']},{get_service_type(channel)},{channel['serviceId']},{channel['networkId']},{transport_stream_id},1")
+            output.append(f"{channel['halfWidthName'] if args.normalize else channel['name']},{i},{j},{channel['remoteControlKeyId'] if channel['remoteControlKeyId'] > 0 else channel['serviceId']},{get_service_type(channel)},{channel['serviceId']},{channel['networkId']},{transport_stream_id},{int(enabled)}")
 
     with open(args.output, "w", encoding="cp932") as f:
         f.write("\r\n".join(output))
-    print(f"Output to {args.output}.")
+    print(f"Output to {args.output}")
