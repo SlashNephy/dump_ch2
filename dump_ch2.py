@@ -76,14 +76,18 @@ if __name__ == "__main__":
         grouped_services = itertools.groupby(mirakurun_services_response, lambda x: x["channel"]["type"])
         for i, x in enumerate(grouped_services):
             channelType, services = x
+            services = list(services)
+            [x.__setitem__("index", j) for j, x in enumerate(services)]
+            if channelType == "BS" or channelType == "CS":
+                services.sort(key=lambda x: x["serviceId"])
 
             output.append(f";#SPACE({i},{channelType})")
 
-            for j, service in enumerate(services):
+            for service in services:
                 transport_stream_id = mirakurun_transport_stream_ids.get(service["id"]) or 0
-                enabled = has_any_programs(service["id"])
+                enabled = has_any_programs(service["id"]) and get_service_type(service)
 
-                output.append(f"{unicodedata.normalize('NFKC', service['name']) if args.normalize else service['name']},{i},{j},{service['remoteControlKeyId'] if service['remoteControlKeyId'] > 0 else service['serviceId']},{get_service_type(service)},{service['serviceId']},{service['networkId']},{transport_stream_id},{int(enabled)}")
+                output.append(f"{unicodedata.normalize('NFKC', service['name']) if args.normalize else service['name']},{i},{service['index']},{service['remoteControlKeyId'] if service['remoteControlKeyId'] > 0 else service['serviceId']},{get_service_type(service)},{service['serviceId']},{service['networkId']},{transport_stream_id},{int(enabled)}")
     else:
         raise Exception(f"Unknown type: {args.type}")
 
