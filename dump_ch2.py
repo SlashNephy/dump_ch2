@@ -14,15 +14,21 @@ def call_json_api(url):
 
 
 def get_service_type(service):
-    if "ラジオ" in service["name"]:
-        return 2  # 音声サービス
+    service_type = service.get("type")
+    if not service_type:
+        if "ラジオ" in service["name"]:
+            return True, 2  # 音声サービス
+        return True, 1  # 映像サービス
 
-    return 1  # 映像サービス
+    if service_type in [0x01, 0xA1, 0xA5, 0x02, 0xA2, 0xA6]:
+        return True, service_type
+    return False, service_type
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-t", "--type", help="BonDriver_EPGStation or BonDriver_mirakc?", default="BonDriver_EPGStation")
+    parser.add_argument("-o", "--output", help="Output filename.")
+    parser.add_argument("-t", "--type", help="BonDriver_EPGStation or BonDriver_mirakc or BonDriver_Mirakurun?", default="BonDriver_EPGStation")
     parser.add_argument("-ma", "--mirakurun-address", help="specify Mirakurun/mirakc address.", default="127.0.0.1")
     parser.add_argument("-mp", "--mirakurun-port", help="specify Mirakurun/mirakc port.", type=int, default=40772)
     parser.add_argument("-ea", "--epgstation-address", help="specify EPGStation address.", default="127.0.0.1")
@@ -67,30 +73,40 @@ if __name__ == "__main__":
             output.append(f";#SPACE({i},{channelType})")
 
             for j, channel in enumerate(channels):
+                valid, service_type = get_service_type(channel)
+                if not valid:
+                    enabled = False
+                else:
+                    enabled = has_any_programs(channel["id"])
+
                 # TSID は EPGStation API から取得できないので mirakc のデータを使う
                 transport_stream_id = mirakurun_transport_stream_ids.get(channel["id"]) or 0
-                enabled = has_any_programs(channel["id"])
 
-                output.append(f"{channel['halfWidthName'] if args.normalize else channel['name']},{i},{j},{channel['remoteControlKeyId'] if channel['remoteControlKeyId'] > 0 else channel['serviceId']},{get_service_type(channel)},{channel['serviceId']},{channel['networkId']},{transport_stream_id},{int(enabled)}")
-    elif args.type == "BonDriver_mirakc":
+                output.append(f"{channel['halfWidthName'] if args.normalize else channel['name']},{i},{j},{channel['remoteControlKeyId'] if channel['remoteControlKeyId'] > 0 else channel['serviceId']},{service_type},{channel['serviceId']},{channel['networkId']},{transport_stream_id},{int(enabled)}")
+    elif args.type == "BonDriver_mirakc" or args.type == "BonDriver_Mirakurun":
         grouped_services = itertools.groupby(mirakurun_services_response, lambda x: x["channel"]["type"])
         for i, x in enumerate(grouped_services):
             channelType, services = x
             services = list(services)
             [x.__setitem__("index", j) for j, x in enumerate(services)]
-            if channelType == "BS" or channelType == "CS":
+            if channelType == "BS" or channelType == "CS" or channelType == "SKY":
                 services.sort(key=lambda x: x["serviceId"])
 
             output.append(f";#SPACE({i},{channelType})")
 
             for service in services:
-                transport_stream_id = mirakurun_transport_stream_ids.get(service["id"]) or 0
-                enabled = has_any_programs(service["id"]) and get_service_type(service)
+                valid, service_type = get_service_type(service)
+                if not valid:
+                    enabled = False
+                else:
+                    enabled = has_any_programs(service["id"])
 
-                output.append(f"{unicodedata.normalize('NFKC', service['name']) if args.normalize else service['name']},{i},{service['index']},{service['remoteControlKeyId'] if service['remoteControlKeyId'] > 0 else service['serviceId']},{get_service_type(service)},{service['serviceId']},{service['networkId']},{transport_stream_id},{int(enabled)}")
+                transport_stream_id = mirakurun_transport_stream_ids.get(service["id"]) or 0
+
+                output.append(f"{unicodedata.normalize('NFKC', service['name']) if args.normalize else service['name']},{i},{service['index']},{service['remoteControlKeyId'] if 'remoteControlKeyId' in service and service['remoteControlKeyId'] > 0 else service['serviceId']},{service_type},{service['serviceId']},{service['networkId']},{transport_stream_id},{int(enabled)}")
     else:
         raise Exception(f"Unknown type: {args.type}")
 
-    with open(f"{args.type}.ch2", "w", encoding="cp932") as f:
+    with open(f"{args.output or args.type}.ch2", "w", encoding="cp932") as f:
         f.write("\r\n".join(output))
-    print(f"Output to {args.type}.ch2")
+    print(f"Output to {args.output or args.type}.ch2")
