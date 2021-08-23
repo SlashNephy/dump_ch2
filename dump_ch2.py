@@ -31,6 +31,8 @@ if __name__ == "__main__":
     parser.add_argument("-t", "--type", help="BonDriver_EPGStation or BonDriver_mirakc or BonDriver_Mirakurun?", default="BonDriver_EPGStation")
     parser.add_argument("-ma", "--mirakurun-address", help="specify Mirakurun/mirakc address.", default="127.0.0.1")
     parser.add_argument("-mp", "--mirakurun-port", help="specify Mirakurun/mirakc port.", type=int, default=40772)
+    parser.add_argument("-mka", "--mirakc-address", help="specify mirakc address.")
+    parser.add_argument("-mkp", "--mirakc-port", help="specify mirakc port.", default=40772)
     parser.add_argument("-ea", "--epgstation-address", help="specify EPGStation address.", default="127.0.0.1")
     parser.add_argument("-ep", "--epgstation-port", help="specify EPGStation port.", type=int, default=8888)
     parser.add_argument("-n", "--normalize", help="normalize service name? (convert full-width chars to half-width)", action="store_true")
@@ -46,10 +48,20 @@ if __name__ == "__main__":
     print(f"GET {mirakurun_services_url}")
     mirakurun_services_response = call_json_api(mirakurun_services_url)
 
-    mirakurun_transport_stream_ids = {
-        x["id"]: x["transportStreamId"]
-        for x in mirakurun_services_response if "transportStreamId" in x
-    }
+    if args.mirakc_address:
+        mirakc_services_url = f"http://{args.mirakc_address.strip()}:{args.mirakc_port}/api/services"
+        print(f"GET {mirakc_services_url}")
+        mirakc_services_response = call_json_api(mirakc_services_url)
+
+        mirakc_transport_stream_ids = {
+            x["id"]: x["transportStreamId"]
+            for x in mirakc_services_response
+        }
+    else:
+        mirakc_transport_stream_ids = {
+            x["id"]: x["transportStreamId"]
+            for x in mirakurun_services_response if "transportStreamId" in x
+        }
 
     def has_any_programs(channel_id):
         if not args.strip:
@@ -80,7 +92,7 @@ if __name__ == "__main__":
                     enabled = has_any_programs(channel["id"])
 
                 # TSID は EPGStation API から取得できないので mirakc のデータを使う
-                transport_stream_id = mirakurun_transport_stream_ids.get(channel["id"]) or 0
+                transport_stream_id = mirakc_transport_stream_ids.get(channel["id"]) or 0
 
                 output.append(f"{channel['halfWidthName'] if args.normalize else channel['name']},{i},{j},{channel['remoteControlKeyId'] if channel['remoteControlKeyId'] > 0 else channel['serviceId']},{service_type},{channel['serviceId']},{channel['networkId']},{transport_stream_id},{int(enabled)}")
     elif args.type == "BonDriver_mirakc" or args.type == "BonDriver_Mirakurun":
@@ -101,7 +113,7 @@ if __name__ == "__main__":
                 else:
                     enabled = has_any_programs(service["id"])
 
-                transport_stream_id = mirakurun_transport_stream_ids.get(service["id"]) or 0
+                transport_stream_id = mirakc_transport_stream_ids.get(service["id"]) or 0
 
                 output.append(f"{unicodedata.normalize('NFKC', service['name']) if args.normalize else service['name']},{i},{service['index']},{service['remoteControlKeyId'] if 'remoteControlKeyId' in service and service['remoteControlKeyId'] > 0 else service['serviceId']},{service_type},{service['serviceId']},{service['networkId']},{transport_stream_id},{int(enabled)}")
     else:
