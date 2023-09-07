@@ -29,10 +29,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-o", "--output", help="Output filename.")
     parser.add_argument("-t", "--type", help="BonDriver_EPGStation or BonDriver_mirakc or BonDriver_Mirakurun?", default="BonDriver_EPGStation")
+    parser.add_argument("-ms", "--mirakurun-scheme", help="specify Mirakurun/mirakc scheme.", default="http")
     parser.add_argument("-ma", "--mirakurun-address", help="specify Mirakurun/mirakc address.", default="127.0.0.1")
     parser.add_argument("-mp", "--mirakurun-port", help="specify Mirakurun/mirakc port.", type=int, default=40772)
+    parser.add_argument("-mks", "--mirakc-scheme", help="specify mirakc scheme.", default="http")
     parser.add_argument("-mka", "--mirakc-address", help="specify mirakc address.")
     parser.add_argument("-mkp", "--mirakc-port", help="specify mirakc port.", default=40772)
+    parser.add_argument("-es", "--epgstation-scheme", help="specify EPGStation scheme.", default="http")
     parser.add_argument("-ea", "--epgstation-address", help="specify EPGStation address.", default="127.0.0.1")
     parser.add_argument("-ep", "--epgstation-port", help="specify EPGStation port.", type=int, default=8888)
     parser.add_argument("-n", "--normalize", help="normalize service name? (convert full-width chars to half-width)", action="store_true")
@@ -44,12 +47,12 @@ if __name__ == "__main__":
         "; 名称,チューニング空間,チャンネル,リモコン番号,サービスタイプ,サービスID,ネットワークID,TSID,状態"
     ]
 
-    mirakurun_services_url = f"http://{args.mirakurun_address.strip()}:{args.mirakurun_port}/api/services"
+    mirakurun_services_url = f"{args.mirakurun_scheme}://{args.mirakurun_address.strip()}:{args.mirakurun_port}/api/services"
     print(f"GET {mirakurun_services_url}")
     mirakurun_services_response = call_json_api(mirakurun_services_url)
 
     if args.mirakc_address:
-        mirakc_services_url = f"http://{args.mirakc_address.strip()}:{args.mirakc_port}/api/services"
+        mirakc_services_url = f"{args.mirakc_scheme}://{args.mirakc_address.strip()}:{args.mirakc_port}/api/services"
         print(f"GET {mirakc_services_url}")
         mirakc_services_response = call_json_api(mirakc_services_url)
 
@@ -67,14 +70,14 @@ if __name__ == "__main__":
         if not args.strip:
             return True
 
-        epgstation_schedules_url = f"http://{args.epgstation_address.strip()}:{args.epgstation_port}/api/schedules/{channel_id}?startAt={int(time.time() * 1000)}&days=7&isHalfWidth=true"
+        epgstation_schedules_url = f"{args.epgstation_scheme}://{args.epgstation_address.strip()}:{args.epgstation_port}/api/schedules/{channel_id}?startAt={int(time.time() * 1000)}&days=7&isHalfWidth=true"
         print(f"GET {epgstation_schedules_url}")
         epgstation_schedules_response = call_json_api(epgstation_schedules_url)
 
         return any([len(x["programs"]) > 0 for x in epgstation_schedules_response])
 
     if args.type == "BonDriver_EPGStation":
-        epgstation_channels_url = f"http://{args.epgstation_address.strip()}:{args.epgstation_port}/api/channels"
+        epgstation_channels_url = f"{args.epgstation_scheme}://{args.epgstation_address.strip()}:{args.epgstation_port}/api/channels"
         print(f"GET {epgstation_channels_url}")
         epgstation_channels_response = call_json_api(epgstation_channels_url)
 
