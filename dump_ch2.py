@@ -94,7 +94,7 @@ if __name__ == "__main__":
                 # TSID は EPGStation API から取得できないので mirakc のデータを使う
                 transport_stream_id = mirakc_transport_stream_ids.get(channel["id"]) or 0
 
-                output.append(f"{channel['halfWidthName'] if args.normalize else channel['name']},{i},{j},{channel['remoteControlKeyId'] if channel['remoteControlKeyId'] > 0 else channel['serviceId']},{service_type},{channel['serviceId']},{channel['networkId']},{transport_stream_id},{int(enabled)}")
+                output.append(f"{channel['halfWidthName'] if args.normalize else channel['name']},{i},{j},{channel['remoteControlKeyId'] if channel.get('remoteControlKeyId', 0) > 0 else channel['serviceId']},{service_type},{channel['serviceId']},{channel['networkId']},{transport_stream_id},{int(enabled)}")
     elif args.type == "BonDriver_mirakc" or args.type == "BonDriver_Mirakurun":
         grouped_services = itertools.groupby(mirakurun_services_response, lambda x: x["channel"]["type"])
         for i, x in enumerate(grouped_services):
