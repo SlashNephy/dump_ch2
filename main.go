@@ -112,7 +112,7 @@ func execute(ctx context.Context) error {
 					name = width.Fold.String(norm.NFKC.String(service.Name))
 				}
 
-				transportStreamID, _ := transportStreamIDs[service.ID]
+				transportStreamID, _ := transportStreamIDs[service.ID] //nolint:gosimple
 				file.AddChannel(channelType, &external.BonDriverChannel{
 					Name:               name,
 					ChannelIndex:       initialIndices[service.ID],
@@ -155,7 +155,7 @@ func execute(ctx context.Context) error {
 					name = norm.NFKC.String(channel.HalfWidthName)
 				}
 
-				transportStreamID, _ := transportStreamIDs[channel.ID]
+				transportStreamID, _ := transportStreamIDs[channel.ID] //nolint:gosimple
 				file.AddChannel(channelType, &external.BonDriverChannel{
 					Name:               name,
 					RemoteControlKeyID: channel.RemoteControlKeyID,
