@@ -1,6 +1,6 @@
 module github.com/SlashNephy/dump_ch2
 
-go 1.21.7
+go 1.22.0
 
 require (
 	github.com/jessevdk/go-flags v1.5.0
