@@ -5,7 +5,7 @@ go 1.22.1
 require (
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/samber/lo v1.39.0
-	golang.org/x/exp v0.0.0-20240314144324-c7f7c6466f7f
+	golang.org/x/exp v0.0.0-20240318143956-a85f2c67cd81
 	golang.org/x/text v0.14.0
 )
 
