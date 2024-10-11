@@ -55,12 +55,27 @@ func main() {
 	}
 }
 
+func buildURL(scheme string, host string, port uint16) *url.URL {
+	switch {
+	case scheme == "http" && port == 80, scheme == "https" && port == 443:
+		return &url.URL{
+			Scheme: scheme,
+			Host:   host,
+		}
+	default:
+		return &url.URL{
+			Scheme: scheme,
+			Host:   fmt.Sprintf("%s:%d", host, port),
+		}
+	}
+}
+
 func execute(ctx context.Context) error {
 	file := external.NewBonDriverChannelFile()
 
 	client := &http.Client{}
-	mirakurun := external.NewMirakurunClient(client, &url.URL{Scheme: opts.MirakurunScheme, Host: fmt.Sprintf("%s:%d", opts.MirakurunHost, opts.MirakurunPort)}, opts.RequestHeaders)
-	epgstation := external.NewEPGStationClient(client, &url.URL{Scheme: opts.EPGStationScheme, Host: fmt.Sprintf("%s:%d", opts.EPGStationHost, opts.EPGStationPort)}, opts.RequestHeaders)
+	mirakurun := external.NewMirakurunClient(client, buildURL(opts.MirakurunScheme, opts.MirakurunHost, opts.MirakurunPort), opts.RequestHeaders)
+	epgstation := external.NewEPGStationClient(client, buildURL(opts.EPGStationScheme, opts.EPGStationHost, opts.EPGStationPort), opts.RequestHeaders)
 
 	services, err := mirakurun.GetServices(ctx)
 	if err != nil {
