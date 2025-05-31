@@ -7,7 +7,7 @@ toolchain go1.24.3
 require (
 	github.com/jessevdk/go-flags v1.6.1
 	github.com/samber/lo v1.50.0
-	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6
+	golang.org/x/exp v0.0.0-20250531010427-b6e5de432a8b
 	golang.org/x/text v0.25.0
 )
 
