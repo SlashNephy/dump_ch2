@@ -2,7 +2,7 @@ module github.com/SlashNephy/dump_ch2
 
 go 1.24.0
 
-toolchain go1.24.8
+toolchain go1.24.9
 
 require (
 	github.com/jessevdk/go-flags v1.6.1
