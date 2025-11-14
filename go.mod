@@ -8,7 +8,7 @@ require (
 	github.com/jessevdk/go-flags v1.6.1
 	github.com/samber/lo v1.52.0
 	golang.org/x/exp v0.0.0-20251023183803-a4bb9ffd2546
-	golang.org/x/text v0.30.0
+	golang.org/x/text v0.31.0
 )
 
 require golang.org/x/sys v0.21.0 // indirect
