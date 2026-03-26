@@ -15,14 +15,14 @@ on:
 jobs:
   build:
     if: github.event_name != 'push'
-    uses: SlashNephy/.github/.github/workflows/go-run.yml@master
+    uses: SlashNephy/.github/.github/workflows/go-run.yml@2b64691f87d64d627f89946fb6f21169ddffc8b0 # master
     permissions:
       contents: 'read'
     with:
       task: 'build'
 
   lint:
-    uses: SlashNephy/.github/.github/workflows/go-lint.yml@master
+    uses: SlashNephy/.github/.github/workflows/go-lint.yml@2b64691f87d64d627f89946fb6f21169ddffc8b0 # master
     permissions:
       contents: 'read'
       pull-requests: 'write'
