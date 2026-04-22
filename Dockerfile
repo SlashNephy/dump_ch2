@@ -8,7 +8,7 @@ RUN go mod download
 COPY ./ ./
 RUN go build
 
-FROM debian:bullseye-slim@sha256:0083feb8da4f624e3a0245e7752af2517d4b81d8b8db50c725644672a132a31b
+FROM debian:bullseye-slim@sha256:1a4701c321b1d28b1ff5f0230e766791e4b79b1d4c6c7a70064f4b297b1a330f
 WORKDIR /app
 
 RUN groupadd -g 1000 app && useradd -u 1000 -g app app
